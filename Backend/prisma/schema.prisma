@@ -1,0 +1,188 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RolUsuario {
+  Cargador
+  Revisor
+  Administrador
+}
+
+enum EstadoEvidencia {
+  Borrador
+  EnRevision
+  Validado
+  Rechazado
+}
+
+enum EstadoVigencia {
+  Vigente
+  Proximo
+  Vencido
+}
+
+enum FormatoArchivo {
+  PDF
+  DOCX
+  XLSX
+}
+
+enum CategoriaPlantilla {
+  Institucional
+  Programa
+  Autoevaluacion
+}
+
+model Usuario {
+  id         String      @id @default(cuid())
+  nombre     String
+  correo     String      @unique
+  contrasena String
+  rol        RolUsuario
+  activo     Boolean     @default(true)
+  evidencias Evidencia[]
+  alertas    AlertaInApp[]
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+}
+
+model Programa {
+  id               String          @id @default(cuid())
+  nombre           String
+  codigo           String          @unique
+  nivel            String
+  semaforo         String          @default("Verde")
+  porcentajeAvance Float           @default(0)
+  estadoProceso    String          @default("En curso")
+  evidencias       Evidencia[]
+  anexos           AnexoVigencia[]
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model Evidencia {
+  id            String           @id @default(cuid())
+  nombre        String
+  programaId    String
+  programa      Programa         @relation(fields: [programaId], references: [id])
+  periodo       String
+  factor        String
+  indicador     String
+  estado        EstadoEvidencia  @default(Borrador)
+  autorId       String
+  autor         Usuario          @relation(fields: [autorId], references: [id])
+  nombreArchivo String
+  rutaArchivo   String?
+  mimeType      String?
+  tamanoBytes   Int?
+  fechaCarga    DateTime         @default(now())
+  observaciones String?
+  responsable   String?
+  historial     HistorialEvidencia[]
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([programaId])
+  @@index([autorId])
+  @@index([estado])
+  @@index([factor, indicador, periodo])
+}
+
+model HistorialEvidencia {
+  id          String          @id @default(cuid())
+  evidenciaId String
+  evidencia   Evidencia       @relation(fields: [evidenciaId], references: [id], onDelete: Cascade)
+  estado      EstadoEvidencia
+  observacion String?
+  actorId     String?
+  createdAt   DateTime        @default(now())
+}
+
+model Plantilla {
+  id          String             @id @default(cuid())
+  nombre      String
+  factor      String
+  formato     FormatoArchivo
+  version     String
+  vigente     Boolean            @default(true)
+  categoria   CategoriaPlantilla
+  descripcion String?
+  nombreArchivo String?
+  rutaArchivo   String?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([factor, vigente])
+}
+
+model AnexoVigencia {
+  id                String         @id @default(cuid())
+  titulo            String
+  programaId        String
+  programa          Programa       @relation(fields: [programaId], references: [id])
+  tipo              String
+  fechaVencimiento  DateTime
+  estado            EstadoVigencia @default(Vigente)
+  responsable       String
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([programaId])
+  @@index([fechaVencimiento])
+}
+
+model AlertaInApp {
+  id        String   @id @default(cuid())
+  usuarioId String
+  usuario   Usuario  @relation(fields: [usuarioId], references: [id])
+  mensaje   String
+  leida     Boolean  @default(false)
+  tipo      String   @default("general")
+  createdAt DateTime @default(now())
+
+  @@index([usuarioId, leida])
+}
+
+model EtapaAcreditacion {
+  id          String            @id @default(cuid())
+  nombre      String
+  tipo        String
+  descripcion String
+  orden       Int
+  activa      Boolean           @default(true)
+  carpetas    CarpetaNormativa[]
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model CarpetaNormativa {
+  id          String              @id @default(cuid())
+  etapaId     String
+  etapa       EtapaAcreditacion   @relation(fields: [etapaId], references: [id])
+  condicionId String?
+  nombre      String
+  descripcion String
+  orden       Int
+  activa      Boolean             @default(true)
+  documentos  DocumentoRequerido[]
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+}
+
+model DocumentoRequerido {
+  id          String           @id @default(cuid())
+  carpetaId   String
+  carpeta     CarpetaNormativa @relation(fields: [carpetaId], references: [id])
+  nombre      String
+  esPlantilla Boolean          @default(false)
+  formato     FormatoArchivo
+  obligatorio Boolean          @default(true)
+  orden       Int
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}

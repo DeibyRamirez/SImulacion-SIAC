@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:14-alpine
+    container_name: siac-postgres
+    environment:
+      POSTGRES_USER: siac
+      POSTGRES_PASSWORD: siac123
+      POSTGRES_DB: siac_db
+    ports:
+      - '5433:5432'
+    volumes:
+      - siac_pg_data:/var/lib/postgresql/data
+
+  minio:
+    image: minio/minio:latest
+    container_name: siac-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+    volumes:
+      - siac_minio_data:/data
+
+volumes:
+  siac_pg_data:
+  siac_minio_data:

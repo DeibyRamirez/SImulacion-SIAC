@@ -1,0 +1,26 @@
+# Dependencias y builds
+node_modules/
+.next/
+out/
+dist/
+build/
+
+# Entorno local
+.env
+.env*.local
+
+# Herramientas / SO
+.DS_Store
+Thumbs.db
+*.log
+.vercel/
+.v0-trash/
+.snowflake/
+
+# Lockfiles alternativos (el proyecto usa pnpm)
+package-lock.json
+yarn.lock
+
+# IDE
+.idea/
+.vscode/
