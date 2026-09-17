@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   AlertTriangle,
   CheckCircle2,
@@ -28,9 +28,11 @@ import {
 import {
   distribucionEstadosSemilla,
   periodosSemilla,
-  resumenInstitucionalSemilla,
   tendenciaMensualSemilla,
 } from '@/lib/datos-semilla'
+import { apiDisponible } from '@/lib/servicios/cliente-api'
+import { listarProgramasApi } from '@/lib/servicios/programas.servicio'
+import type { Programa } from '@/lib/tipos'
 import { calcularAvanceEtapasSIAC } from '@/lib/utilidades/avance-etapas-siac'
 import { contarEvidenciasPendientes, manejarCambioSelect, obtenerSaludo } from '@/lib/utilidades-siac'
 
@@ -46,17 +48,44 @@ function ContenidoResumen() {
   const { sesion } = usarSesion()
   const { datos } = usarAlmacen()
   const [periodo, setPeriodo] = useState(periodosSemilla[0] ?? '2024-1')
+  const [programas, setProgramas] = useState<Programa[]>([])
+
+  useEffect(() => {
+    async function cargar() {
+      if (!apiDisponible()) return
+      try {
+        const lista = await listarProgramasApi()
+        setProgramas(lista)
+      } catch {
+        setProgramas([])
+      }
+    }
+    cargar()
+  }, [])
+
+  const evidenciasPeriodo = useMemo(
+    () => datos.evidencias.filter((e) => e.periodo === periodo),
+    [datos.evidencias, periodo],
+  )
 
   const validadas = useMemo(
-    () => datos.evidencias.filter((e) => e.estado === 'Validado').length,
-    [datos.evidencias],
+    () => evidenciasPeriodo.filter((e) => e.estado === 'Validado').length,
+    [evidenciasPeriodo],
   )
   const enProceso = useMemo(
-    () => datos.evidencias.filter((e) => e.estado === 'Borrador' || e.estado === 'EnRevision').length,
-    [datos.evidencias],
+    () =>
+      evidenciasPeriodo.filter((e) => e.estado === 'Borrador' || e.estado === 'EnRevision').length,
+    [evidenciasPeriodo],
   )
   const porVencer = datos.anexosVigencia.filter((a) => a.estado === 'Proximo').length
   const pendientes = contarEvidenciasPendientes(datos.evidencias)
+
+  const pregrado = programas.filter((p) => p.nivel === 'Pregrado').length
+  const posgrado = programas.filter((p) => p.nivel === 'Posgrado').length
+  const avancePromedio =
+    programas.length > 0
+      ? Math.round(programas.reduce((acc, p) => acc + p.porcentajeAvance, 0) / programas.length)
+      : 0
 
   const avanceEtapas = useMemo(
     () =>
@@ -74,16 +103,16 @@ function ContenidoResumen() {
       { estado: 'Validadas', valor: validadas, clave: 'validadas' },
       {
         estado: 'En revisión',
-        valor: datos.evidencias.filter((e) => e.estado === 'EnRevision').length,
+        valor: evidenciasPeriodo.filter((e) => e.estado === 'EnRevision').length,
         clave: 'revision',
       },
       {
         estado: 'Borrador',
-        valor: datos.evidencias.filter((e) => e.estado === 'Borrador').length,
+        valor: evidenciasPeriodo.filter((e) => e.estado === 'Borrador').length,
         clave: 'borrador',
       },
     ],
-    [datos.evidencias, validadas],
+    [evidenciasPeriodo, validadas],
   )
 
   const primerNombre = sesion?.nombre.split(' ')[0] ?? 'Administrador'
@@ -94,7 +123,7 @@ function ContenidoResumen() {
         <EncabezadoPagina
           etiqueta="Panel institucional"
           titulo={`${obtenerSaludo()}, ${primerNombre}`}
-          descripcion="Este es el estado general del aseguramiento de la calidad."
+          descripcion="Estado general del aseguramiento de calidad en todas las carreras."
         />
         <Select value={periodo} onValueChange={manejarCambioSelect(setPeriodo)}>
           <SelectTrigger className="w-[160px]">
@@ -111,7 +140,7 @@ function ContenidoResumen() {
       </div>
 
       <TarjetaHeroAcreditacion
-        avance={avanceEtapas.avanceGlobal}
+        avance={avancePromedio || avanceEtapas.avanceGlobal}
         evidenciasValidadas={validadas}
         evidenciasEnProceso={enProceso}
       />
@@ -119,15 +148,15 @@ function ContenidoResumen() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <TarjetaKpi
           titulo="Programas activos"
-          valor={resumenInstitucionalSemilla.programasActivos}
-          descripcion={`${resumenInstitucionalSemilla.pregrado} pregrado · ${resumenInstitucionalSemilla.posgrado} posgrado`}
+          valor={programas.length || '—'}
+          descripcion={`${pregrado} pregrado · ${posgrado} posgrado`}
           icono={GraduationCap}
           acento="cyan"
         />
         <TarjetaKpi
           titulo="Evidencias validadas"
           valor={validadas}
-          tendencia={{ valor: '↑ 12% frente al ciclo anterior', positiva: true }}
+          tendencia={{ valor: `Periodo ${periodo}`, positiva: true }}
           icono={CheckCircle2}
           acento="esmeralda"
         />

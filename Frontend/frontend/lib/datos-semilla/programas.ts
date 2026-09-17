@@ -1,5 +1,7 @@
 import type { Programa } from '@/lib/tipos'
 
+const IMAGEN_PROGRAMA = '/imagenes/siac/placeholder-programa.svg'
+
 export const programasSemilla: Programa[] = [
   {
     id: 'prog-der',
@@ -9,15 +11,17 @@ export const programasSemilla: Programa[] = [
     semaforo: 'Verde',
     porcentajeAvance: 85,
     estadoProceso: 'En autoevaluación',
+    urlImagen: "/Carreras/derecho.png",
   },
   {
     id: 'prog-isw',
-    nombre: 'Ingeniería de Software',
+    nombre: 'Ingeniería de Software y Computación',
     codigo: 'ISW-02',
     nivel: 'Pregrado',
     semaforo: 'Amarillo',
     porcentajeAvance: 74,
     estadoProceso: 'En autoevaluación',
+    urlImagen: "/Carreras/ingenieria_software.png",
   },
   {
     id: 'prog-ade',
@@ -27,33 +31,37 @@ export const programasSemilla: Programa[] = [
     semaforo: 'Verde',
     porcentajeAvance: 92,
     estadoProceso: 'Documentación completa',
+    urlImagen: "/Carreras/administracion.png",
   },
   {
-    id: 'prog-med',
-    nombre: 'Maestría en Educación',
+    id: 'prog-end',
+    nombre: 'Entrenamiento deportivo',
     codigo: 'MED-05',
     nivel: 'Posgrado',
     semaforo: 'Amarillo',
     porcentajeAvance: 68,
     estadoProceso: 'En revisión interna',
+    urlImagen: "/Carreras/entrenamiento_deportivo.png",
   },
   {
-    id: 'prog-enf',
-    nombre: 'Enfermería',
+    id: 'prog-ina',
+    nombre: 'Ingenieria Ambiental',
     codigo: 'ENF-04',
     nivel: 'Pregrado',
     semaforo: 'Verde',
     porcentajeAvance: 88,
     estadoProceso: 'En autoevaluación',
+    urlImagen: "/Carreras/ambiental.png",
   },
   {
-    id: 'prog-psi',
-    nombre: 'Psicología',
+    id: 'prog-ine',
+    nombre: 'Ingenieria Energetica',
     codigo: 'PSI-06',
     nivel: 'Pregrado',
     semaforo: 'Amarillo',
     porcentajeAvance: 71,
     estadoProceso: 'En autoevaluación',
+    urlImagen: "/Carreras/energetica.png",
   },
   {
     id: 'prog-con',
@@ -63,24 +71,37 @@ export const programasSemilla: Programa[] = [
     semaforo: 'Verde',
     porcentajeAvance: 90,
     estadoProceso: 'Documentación completa',
+    urlImagen: "/Carreras/contaduria.png",
   },
   {
-    id: 'prog-com',
-    nombre: 'Comunicación Social',
+    id: 'prog-fni',
+    nombre: 'Finanzas y Negocios Internacionales',
     codigo: 'COM-08',
     nivel: 'Pregrado',
     semaforo: 'Rojo',
     porcentajeAvance: 31,
     estadoProceso: 'Requiere atención',
+    urlImagen: "/Carreras/finanzas.png",
   },
   {
-    id: 'prog-mba',
-    nombre: 'MBA',
+    id: 'prog-lei',
+    nombre: 'Licenciatura en Educación Infantil',
     codigo: 'MBA-09',
     nivel: 'Posgrado',
     semaforo: 'Amarillo',
     porcentajeAvance: 65,
     estadoProceso: 'En autoevaluación',
+    urlImagen: "/Carreras/licenciatura.png",
+  },
+  {
+    id: 'prog-inc',
+    nombre: 'Ingenieria Civil',
+    codigo: 'INV-10',
+    nivel: 'Pregrado',
+    semaforo: 'Rojo',
+    porcentajeAvance: 28,
+    estadoProceso: 'Registro nuevo',
+    urlImagen: "/Carreras/civil.png",
   },
   {
     id: 'prog-inv',
@@ -90,6 +111,7 @@ export const programasSemilla: Programa[] = [
     semaforo: 'Rojo',
     porcentajeAvance: 28,
     estadoProceso: 'Registro nuevo',
+    urlImagen: IMAGEN_PROGRAMA,
   },
   {
     id: 'prog-cib',
@@ -99,6 +121,7 @@ export const programasSemilla: Programa[] = [
     semaforo: 'Amarillo',
     porcentajeAvance: 55,
     estadoProceso: 'Registro nuevo',
+    urlImagen: IMAGEN_PROGRAMA,
   },
   {
     id: 'prog-arc',
@@ -108,6 +131,7 @@ export const programasSemilla: Programa[] = [
     semaforo: 'Verde',
     porcentajeAvance: 82,
     estadoProceso: 'En autoevaluación',
+    urlImagen: IMAGEN_PROGRAMA,
   },
 ]
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { Copy, ShieldCheck, Upload, UserCheck } from 'lucide-react'
+import { Copy, ShieldCheck, Upload, UserCheck, UserCog } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
@@ -8,16 +8,18 @@ import { usuariosSemilla } from '@/lib/datos-semilla/usuarios'
 import type { RolUsuario } from '@/lib/tipos'
 import { cn } from '@/lib/utils'
 
-const iconosPorRol: Record<RolUsuario, typeof ShieldCheck> = {
+const iconosPorRol: Partial<Record<RolUsuario, typeof ShieldCheck>> = {
   Administrador: ShieldCheck,
   Revisor: UserCheck,
   Cargador: Upload,
+  SuperAdmin: UserCog,
 }
 
-const coloresPorRol: Record<RolUsuario, string> = {
+const coloresPorRol: Partial<Record<RolUsuario, string>> = {
   Administrador: 'border-primary/30 bg-accent',
   Revisor: 'border-esmeralda/30 bg-accent',
   Cargador: 'border-cyan-tecnico/30 bg-secondary',
+  SuperAdmin: 'border-purpura/30 bg-accent',
 }
 
 async function copiarAlPortapapeles(valor: string, etiqueta: string) {
@@ -40,11 +42,14 @@ export function TarjetaCredencialesDemo() {
       </div>
 
       {usuariosSemilla.map((usuario) => {
-        const Icono = iconosPorRol[usuario.rol]
+        const Icono = iconosPorRol[usuario.rol] ?? ShieldCheck
         return (
           <div
             key={usuario.id}
-            className={cn('tarjeta-institucional rounded-md border p-4', coloresPorRol[usuario.rol])}
+            className={cn(
+              'tarjeta-institucional rounded-md border p-4',
+              coloresPorRol[usuario.rol] ?? 'border-primary/30 bg-accent',
+            )}
           >
             <div className="mb-3 flex items-center gap-2">
               <Icono className="size-4 shrink-0 text-primary" />

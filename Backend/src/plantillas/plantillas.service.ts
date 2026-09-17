@@ -12,37 +12,41 @@ export class PlantillasService {
   ) {}
 
   listar(rol: RolUsuario) {
-    const soloVigentes = rol === RolUsuario.Cargador;
+    const soloVigentes = rol === RolUsuario.Cargador || rol === RolUsuario.ParAcademico;
     return this.plantillaRepo.listar(soloVigentes);
   }
 
   async crear(dto: CrearPlantillaDto, archivo?: Express.Multer.File) {
-    let rutaArchivo: string | undefined;
-    let nombreArchivo: string | undefined;
-
-    if (archivo) {
-      const resultado = await this.almacenamiento.subirArchivo(
-        archivo.buffer,
-        archivo.originalname,
-        'plantillas',
-      );
-      rutaArchivo = resultado.clave;
-      nombreArchivo = archivo.originalname;
-    }
-
     await this.plantillaRepo.marcarAnterioresNoVigentes(dto.factor);
 
-    return this.plantillaRepo.crear({
+    const plantilla = await this.plantillaRepo.crear({
       ...dto,
       vigente: true,
-      nombreArchivo,
-      rutaArchivo,
     });
+
+    if (archivo) {
+      const clave = this.almacenamiento.generarClavePlantilla(
+        plantilla.id,
+        archivo.originalname,
+      );
+      await this.almacenamiento.subirArchivo(
+        archivo.buffer,
+        clave,
+        'plantillas',
+        archivo.mimetype,
+      );
+      return this.plantillaRepo.actualizar(plantilla.id, {
+        nombreArchivo: archivo.originalname,
+        rutaArchivo: clave,
+      });
+    }
+
+    return plantilla;
   }
 
   async actualizar(id: string, dto: ActualizarPlantillaDto, rol: RolUsuario) {
-    if (rol === RolUsuario.Cargador) {
-      throw new ForbiddenException('Los cargadores no pueden editar plantillas.');
+    if (rol === RolUsuario.Cargador || rol === RolUsuario.ParAcademico) {
+      throw new ForbiddenException('No tiene permiso para editar plantillas.');
     }
 
     const plantilla = await this.plantillaRepo.buscarPorId(id);
@@ -51,28 +55,23 @@ export class PlantillasService {
     return this.plantillaRepo.actualizar(id, dto);
   }
 
-  async eliminar(id: string, rol: RolUsuario) {
-    if (rol !== RolUsuario.Administrador) {
-      throw new ForbiddenException('Solo el administrador puede eliminar plantillas.');
+  async deshabilitar(id: string, rol: RolUsuario) {
+    if (rol !== RolUsuario.Revisor && rol !== RolUsuario.Administrador) {
+      throw new ForbiddenException('No tiene permiso para deshabilitar plantillas.');
     }
 
     const plantilla = await this.plantillaRepo.buscarPorId(id);
     if (!plantilla) throw new NotFoundException('Plantilla no encontrada.');
 
-    if (plantilla.rutaArchivo) {
-      await this.almacenamiento.eliminarArchivo(plantilla.rutaArchivo);
-    }
-
-    return this.plantillaRepo.eliminar(id);
+    return this.plantillaRepo.actualizar(id, { vigente: false });
   }
 
-  async descargar(id: string) {
+  async obtenerUrlDescarga(id: string) {
     const plantilla = await this.plantillaRepo.buscarPorId(id);
     if (!plantilla?.rutaArchivo) {
       throw new NotFoundException('Archivo de plantilla no disponible.');
     }
 
-    const buffer = await this.almacenamiento.obtenerBuffer(plantilla.rutaArchivo);
-    return { buffer, nombreArchivo: plantilla.nombreArchivo ?? `${plantilla.nombre}.${plantilla.formato.toLowerCase()}` };
+    return this.almacenamiento.generarUrlFirmada(plantilla.rutaArchivo, 'plantillas');
   }
 }

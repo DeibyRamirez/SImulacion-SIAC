@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
 import { RolUsuario } from '@prisma/client';
 
 export class IniciarSesionDto {
@@ -25,4 +25,53 @@ export class RespuestaAuthDto {
 export class ActualizarRolDto {
   @IsEnum(RolUsuario)
   rol!: RolUsuario;
+}
+
+export class CrearUsuarioDto {
+  @IsString()
+  @IsNotEmpty()
+  nombre!: string;
+
+  @IsEmail()
+  @IsNotEmpty()
+  correo!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  contrasena!: string;
+
+  @IsEnum(RolUsuario)
+  rol!: RolUsuario;
+
+  @IsString()
+  @IsOptional()
+  cargo?: string;
+
+  @IsString()
+  @IsOptional()
+  dependencia?: string;
+}
+
+export class ActualizarUsuarioDto {
+  @IsString()
+  @IsOptional()
+  nombre?: string;
+
+  @IsString()
+  @IsOptional()
+  cargo?: string;
+
+  @IsString()
+  @IsOptional()
+  dependencia?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  activo?: boolean;
+
+  @IsString()
+  @IsOptional()
+  @MinLength(6)
+  contrasena?: string;
 }

@@ -1,4 +1,9 @@
-export type RolUsuario = 'Cargador' | 'Revisor' | 'Administrador'
+export type RolUsuario =
+  | 'Cargador'
+  | 'Revisor'
+  | 'ParAcademico'
+  | 'Administrador'
+  | 'SuperAdmin'
 
 export type EstadoEvidencia = 'Borrador' | 'EnRevision' | 'Validado' | 'Rechazado'
 
@@ -34,6 +39,7 @@ export interface Programa {
   semaforo: SemaforoPrograma
   porcentajeAvance: number
   estadoProceso: string
+  urlImagen?: string
 }
 
 export interface Evidencia {
@@ -50,6 +56,7 @@ export interface Evidencia {
   observaciones?: string
   responsable?: string
   documentoRequeridoId?: string
+  version?: number
 }
 
 export interface Plantilla {
@@ -69,9 +76,14 @@ export interface AnexoVigencia {
   titulo: string
   programaId: string
   tipo: string
+  carpeta?: string
+  nombreArchivo?: string
+  aniosVigencia?: number
+  fechaCarga?: string
   fechaVencimiento: string
   estado: EstadoVigencia
   responsable: string
+  porcentajeTranscurrido?: number
 }
 
 export interface AlertaInApp {

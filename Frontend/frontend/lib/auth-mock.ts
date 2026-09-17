@@ -43,6 +43,10 @@ export function rutaInicioPorRol(rol: RolUsuario): string {
       return '/revisor'
     case 'Administrador':
       return '/administrador'
+    case 'ParAcademico':
+      return '/administrador'
+    case 'SuperAdmin':
+      return '/superadmin'
   }
 }
 
@@ -54,6 +58,10 @@ export function prefijoRol(rol: RolUsuario): string {
       return '/revisor'
     case 'Administrador':
       return '/administrador'
+    case 'ParAcademico':
+      return '/administrador'
+    case 'SuperAdmin':
+      return '/superadmin'
   }
 }
 
@@ -64,8 +72,20 @@ export function etiquetaRol(rol: RolUsuario): string {
     case 'Revisor':
       return 'Revisora de calidad'
     case 'Administrador':
-      return 'Administrador / Par académico'
+      return 'Administrador'
+    case 'ParAcademico':
+      return 'Par académico MEN'
+    case 'SuperAdmin':
+      return 'Super administrador SIAC'
   }
+}
+
+const RUTAS_SUPERADMIN = ['/superadmin', '/cargador', '/revisor', '/administrador'] as const
+
+export function rutaPermitidaSuperAdmin(pathname: string): boolean {
+  return RUTAS_SUPERADMIN.some(
+    (prefijo) => pathname === prefijo || pathname.startsWith(`${prefijo}/`),
+  )
 }
 
 export function leerSesionLocal(): SesionUsuario | null {

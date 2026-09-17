@@ -18,11 +18,13 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  categoriasCalidadSemilla,
   distribucionEstadosSemilla,
   resumenInstitucionalSemilla,
+  tarjetasResumenSemilla,
   tendenciaMensualSemilla,
 } from '@/lib/datos-semilla'
+import { informesPowerBiSemilla } from '@/lib/informes-powerbi'
+import Image from 'next/image'
 
 export default function DashboardMetricasPage() {
   return (
@@ -78,44 +80,52 @@ function ContenidoDashboard() {
 
         <TabsContent value="metricas" className="space-y-6">
           <div className="grid gap-4 md:grid-cols-3">
-            <Card className="border-l-4 border-primary">
-              <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground uppercase">Visión institucional</p>
-                <p className="mt-2 text-3xl font-bold text-primary">
-                  {resumenInstitucionalSemilla.cumplimientoInstitucional}%
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-l-4 border-primary">
-              <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground uppercase">Condiciones institucionales</p>
-                <p className="mt-2 text-3xl font-bold text-primary">
-                  {resumenInstitucionalSemilla.condicionesInstitucionales}%
-                </p>
-                <p className="text-xs text-muted-foreground">6 condiciones · pre-calificación</p>
-              </CardContent>
-            </Card>
-            <Card className="border-l-4 border-primary">
-              <CardContent className="pt-6">
-                <p className="text-xs text-muted-foreground uppercase">Condiciones de programa</p>
-                <p className="mt-2 text-3xl font-bold text-primary">
-                  {resumenInstitucionalSemilla.condicionesPrograma}%
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {categoriasCalidadSemilla.map((cat) => (
-              <Card key={cat.nombre} className="border-l-4 border-esmeralda">
+            {tarjetasResumenSemilla.map((tarjeta) => (
+              <Card key={tarjeta.id} className="overflow-hidden border-l-4 border-primary">
+                <div className="relative aspect-video w-full bg-accent">
+                  {tarjeta.urlImagen && (
+                    <Image
+                      src={tarjeta.urlImagen}
+                      alt={tarjeta.titulo}
+                      fill
+                      className="object-cover opacity-90"
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                    />
+                  )}
+                </div>
                 <CardContent className="pt-4">
-                  <p className="text-sm font-medium text-primary">{cat.nombre}</p>
-                  <p className="text-xs text-muted-foreground">{cat.detalle}</p>
-                  <p className="mt-2 text-lg font-bold text-esmeralda">{cat.valor} / 5</p>
+                  <p className="text-xs text-muted-foreground uppercase">{tarjeta.titulo}</p>
+                  <p className="mt-2 text-3xl font-bold text-primary">{tarjeta.valor}</p>
+                  {tarjeta.detalle && (
+                    <p className="text-xs text-muted-foreground">{tarjeta.detalle}</p>
+                  )}
                 </CardContent>
               </Card>
             ))}
           </div>
+
+          {/* <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {informesPowerBiSemilla.map((cat) => (
+              <Card key={cat.id} className="overflow-hidden border-l-4 border-esmeralda">
+                <div className="relative aspect-[4/3] w-full bg-accent">
+                  {cat.urlImagen && (
+                    <Image
+                      src={cat.urlImagen}
+                      alt={cat.titulo}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 50vw, 25vw"
+                    />
+                  )}
+                </div>
+                <CardContent className="pt-4">
+                  <p className="text-sm font-medium text-primary">{cat.titulo}</p>
+                  <p className="text-xs text-muted-foreground">{cat.descripcion}</p>
+                  <p className="mt-2 text-lg font-bold text-esmeralda">{cat.valor} / 5</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div> */}
 
           <p className="text-xs text-muted-foreground">
             Datos consolidados de SIAC · Última sincronización: hoy, 08:42

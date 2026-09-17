@@ -2,71 +2,125 @@
 
 > **Periodo:** 20/08/2026 – 02/09/2026  
 > **Estado:** Completada — retrospectivo  
-> **Referencia:** [SIAC_Documentacion_Proyecto.pdf](../../Documentos/SIAC_Documentacion_Proyecto.pdf)
+> **Referencia:** [MemoriaGlobal.md](../../MemoriaGlobal.md) · [F-03 Arquitectura](../../Documentos/F-03_Arquitectura_y_diseno.docx.pdf)
 
 ## Objetivo
 
-Alinear equipo, cliente (Planeación CUAC) y docente sobre alcance, arquitectura y plan de sprints antes de escribir código de producción.
+Alinear equipo, cliente (Planeación CUAC) y docente sobre alcance, arquitectura y plan de sprints antes del código de producción. Esta etapa define **qué** se construye y **por qué**, dejando trazabilidad para que otra persona retome el proyecto sin depender del equipo original.
 
-## Entregables realizados
+## Entregables documentales
 
 | Artefacto | Ubicación | Estado |
 |-----------|-----------|--------|
-| Acta de constitución (F-00) | PDF unificado | ✅ |
-| Propuesta técnica (F-01) | PDF unificado | ✅ |
-| Especificación de requisitos (F-02) | PDF unificado | ✅ |
-| Impact Mapping | PDF cap. 4 | ✅ |
-| Product Vision Board | PDF cap. 4 | ✅ |
-| ProtoPersonas (María, Par MEN) | PDF cap. 4 | ✅ |
-| Not List (alcance congelado) | PDF cap. 4 | ✅ |
-| Prototipo Figma mediana fidelidad | Enlace en PDF | ✅ |
+| Acta de constitución (F-00) | [Documentos/F-00_Acta_de_constitucion.docx.pdf](../../Documentos/F-00_Acta_de_constitucion.docx.pdf) | ✅ |
+| Propuesta técnica (F-01) | [Documentos/F-01_Propuesta_tecnica_preliminar.docx.pdf](../../Documentos/F-01_Propuesta_tecnica_preliminar.docx.pdf) | ✅ |
+| Especificación de requisitos (F-02) | [Documentos/F-02_Especificacion_de_requisitos.docx-1.pdf](../../Documentos/F-02_Especificacion_de_requisitos.docx-1.pdf) | ✅ |
+| Arquitectura y diseño (F-03) | [Documentos/F-03_Arquitectura_y_diseno.docx.pdf](../../Documentos/F-03_Arquitectura_y_diseno.docx.pdf) | ✅ |
+| Diseño de APIs Backend | [Documentos/Diseno_APIs_SIAC.docx.pdf](../../Documentos/Diseno_APIs_SIAC.docx.pdf) | ✅ |
+| Estructura normativa Decreto 1330 | [Documentos/estructura_decreto_etapas_documentos.md](../../Documentos/estructura_decreto_etapas_documentos.md) | ✅ |
+| Información del proyecto | [Documentos/Información del Proyecto.md](../../Documentos/Información%20del%20Proyecto.md) | ✅ |
 | Prototipo Next.js alta fidelidad | `Frontend/frontend/` | ✅ |
-| Memoria del proyecto | `Frontend/MEMORIA_PROYECTO.md` | ✅ |
-| Estructura normativa Decreto 1330 | `Documentos/estructura_decreto_etapas_documentos.md` | ✅ |
+| Memoria frontend | [Frontend/MEMORIA_PROYECTO.md](../../Frontend/MEMORIA_PROYECTO.md) | ✅ |
 
-## Prototipo frontend (adelanto visual)
+## Diagrama de componentes (F-03 §1.1)
 
-El prototipo implementa **19 rutas** con datos mock en `sessionStorage`:
+```mermaid
+flowchart TB
+    subgraph cliente [Cliente_Web]
+        NextJS[NextJS_14_SSR]
+    end
+    subgraph backend [API_REST_SIAC]
+        NestJS[NestJS_10_Monolito]
+        AuthMod[AuthModule]
+        DocMod[DocumentosModule]
+        IntMod[IntegracionModule]
+        VigMod[VigenciasModule]
+    end
+    subgraph datos [Persistencia_Dev]
+        SupaPG[(Supabase_PostgreSQL)]
+        SupaS3[Supabase_Storage_S3]
+    end
+    subgraph externos [Externos_MVP]
+        SMTP[SMTP_Opcional]
+        PBI[PowerBI_Embed]
+        TI[APIs_CSV_TI]
+    end
 
-- **3 roles:** Cargador, Revisor, Administrador/Par académico
-- **8 vistas admin** + cargador + revisor
-- CRUD mock de etapas, carpetas y documentos normativos
-- Login estilo Moodle CUAC con credenciales demo
+    NextJS -->|REST_JSON_JWT| NestJS
+    NestJS --> AuthMod
+    NestJS --> DocMod
+    NestJS --> IntMod
+    NestJS --> VigMod
+    DocMod --> SupaPG
+    DocMod --> SupaS3
+    IntMod --> TI
+    IntMod --> SupaPG
+    VigMod --> SupaPG
+    NestJS --> SMTP
+    NestJS --> PBI
+```
+
+## Vista de despliegue (desarrollo)
+
+| Capa | Tecnología | Notas |
+|------|------------|-------|
+| Frontend | Vercel / Next.js 16 | SSR por rol |
+| Backend | NestJS 10 | API REST `/api/v1/` |
+| Base de datos | Supabase PostgreSQL | Proyecto `Simulacion_siac` |
+| Archivos | Supabase Storage | Buckets `evidencias/` y `plantillas/` |
+| Correo | SMTP institucional | Opcional (ADR-006) |
+
+> **Producción institucional:** PostgreSQL on-premise + MinIO en Docker (fuera del alcance de esta etapa).
 
 ## Historias de usuario — alcance del semestre
 
-| ID | Historia | Sprint planificado |
-|----|----------|-------------------|
-| HU-001 | Inicio de sesión JWT | Sprint 1 (Etapa 1) |
-| HU-002 | Pantalla de inicio por rol | Sprint 1 (Etapa 1) |
-| HU-003 | Carga de evidencias con metadatos | Sprint 1–2 |
-| HU-004 | CRUD de evidencias | Sprint 2 (Etapa 2) |
-| HU-005 | Biblioteca y CRUD de plantillas | Sprint 2 (Etapa 2) |
-| HU-006 | Aprobar o rechazar evidencias | Sprint 3 (Etapa 3) |
-| HU-007 | Semáforo de vigencias y alertas | Sprint 3 (Etapa 3) |
-| HU-008 | Búsqueda y filtros en URL | Sprint 2 (Etapa 2) |
-| HU-009 | Métricas embebidas Power BI | Sprint 3 (Etapa 3) |
-| HU-010 | Panel de programas | Sprint 2 (Etapa 2) |
-| HU-011 | Roles y permisos | Sprint 1 (Etapa 1) |
+| ID | Historia | Sprint / Etapa |
+|----|----------|----------------|
+| HU-001 | Inicio de sesión JWT | Etapa 1 |
+| HU-002 | Pantalla de inicio por rol | Etapa 1 |
+| HU-003 | Carga de evidencias con metadatos | Etapa 1–2 |
+| HU-004 | CRUD de evidencias | Etapa 2 |
+| HU-005 | Biblioteca y CRUD de plantillas | Etapa 2 |
+| HU-006 | Aprobar o rechazar evidencias | Etapa 3 |
+| HU-007 | Semáforo de vigencias y alertas | Etapa 3 |
+| HU-008 | Búsqueda y filtros en URL | Etapa 2 |
+| HU-009 | Métricas embebidas Power BI | Etapa 3 |
+| HU-010 | Panel de programas | Etapa 2 |
+| HU-011 | Roles y permisos | Etapa 1 |
 
-## Checklist de validación (Etapa 0)
+## ADRs registradas (F-03 §8)
+
+| ADR | Decisión | Estado |
+|-----|----------|--------|
+| ADR-001 | Monolito en capas con API REST (NestJS + Next.js) | Aceptada |
+| ADR-002 | PostgreSQL metadatos + Storage S3 (Supabase dev / MinIO prod) | Aceptada |
+| ADR-003 | JWT con roles; OAuth Google como mejora futura | Aceptada |
+| ADR-004 | Metadatos CNA textuales en Evidencia (periodo, factor, indicador) | Aceptada |
+| ADR-005 | Copia local sincronizable de maestros TI + dominio operativo SIAC | Aceptada |
+| ADR-006 | Alertas in-app obligatorias; SMTP opcional | Aceptada |
+
+## Not List (alcance congelado)
+
+- Sin integración SACES por API (radicación manual)
+- Sin aplicación móvil nativa (web responsive)
+- Sin microservicios
+- Sin encuestas institucionales
+- Sin Docker/MinIO en desarrollo (Supabase es el entorno dev)
+
+## Convención API adoptada
+
+Contrato oficial según **F-03 en español**: `/api/v1/evidencias`, `/api/v1/programas`, etc. El documento Diseno_APIs_SIAC aporta funcionalidades (parseo Excel, URLs firmadas, embed token) mapeadas a rutas españolas equivalentes.
+
+## Checklist de validación
 
 - [x] Problemática y justificación documentadas
-- [x] Arquitectura monolito en capas (NestJS + Next.js) definida
-- [x] Stack tecnológico acordado (PostgreSQL, Prisma, S3, JWT)
-- [x] Patrones: Repository, Adapter, DTO, DI, Módulos
+- [x] Arquitectura monolito en capas definida
+- [x] Stack acordado (Supabase PG + Storage, Prisma, JWT)
+- [x] Modelo de datos F-03 documentado
 - [x] Prototipo UI validable con stakeholders
-- [x] Not List congelada (sin SACES, sin encuestas, sin app móvil)
+- [x] Not List congelada
 - [x] Cronograma 4 sprints + cierre definido
-
-## Decisiones clave
-
-1. **No microservicios** — plazo y equipo de 2 personas
-2. **Frontend y backend separados** — API REST reutilizable
-3. **pnpm** como gestor de paquetes (no npm)
-4. **Código y UI en español**
-5. **ClickUp solo como referencia** — esta simulación no llena tareas externas
 
 ## Próxima etapa
 
-→ [Etapa 1 — Fundación técnica](../etapa-1/README.md): NestJS + Prisma + Auth JWT + inicio HU-003
+→ [Etapa 1 — Fundación técnica](../etapa-1/README.md): Supabase + NestJS + Auth JWT + primer upload de evidencias

@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { usarAlmacen } from '@/components/auth/proveedor-almacen'
 import { PlantillaPaginaApp } from '@/components/layout/shell-aplicacion'
 import { BarraHerramientasTabla } from '@/components/siac/barra-herramientas-tabla'
+import { DialogoConfirmacion } from '@/components/siac/dialogo-confirmacion'
 import { FiltrosSegmentados } from '@/components/siac/filtros-segmentados'
 import { TablaEvidencias } from '@/components/siac/tabla-evidencias'
 import { EncabezadoPagina, PanelVacio } from '@/components/siac/tarjeta-acceso'
@@ -20,6 +21,8 @@ const filtrosEstado = [
   { valor: 'Rechazado', etiqueta: 'Corrección' },
 ]
 
+type AccionPendiente = { tipo: 'aprobar' | 'rechazar'; id: string } | null
+
 export default function BandejaRevisionAdminPage() {
   return (
     <PlantillaPaginaApp titulo="Bandeja de revisión" rol="Administrador">
@@ -32,6 +35,7 @@ function ContenidoBandeja() {
   const { datos, dictaminarEvidencia } = usarAlmacen()
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('todos')
+  const [accionPendiente, setAccionPendiente] = useState<AccionPendiente>(null)
 
   const evidenciasFiltradas = useMemo(() => {
     return datos.evidencias.filter((evidencia) => {
@@ -42,6 +46,22 @@ function ContenidoBandeja() {
       return coincideTexto && coincideEstado
     })
   }, [datos.evidencias, busqueda, filtroEstado])
+
+  function ejecutarAccion() {
+    if (!accionPendiente) return
+    if (accionPendiente.tipo === 'aprobar') {
+      dictaminarEvidencia(accionPendiente.id, 'Validado')
+      toast.success('Evidencia aprobada.')
+    } else {
+      dictaminarEvidencia(
+        accionPendiente.id,
+        'Rechazado',
+        'Requiere corrección según revisión administrativa.',
+      )
+      toast.warning('Evidencia devuelta para corrección.')
+    }
+    setAccionPendiente(null)
+  }
 
   return (
     <div className="space-y-6">
@@ -78,17 +98,29 @@ function ContenidoBandeja() {
         <TablaEvidencias
           evidencias={evidenciasFiltradas}
           mostrarAccionesRapidas
-          onAprobar={(id) => {
-            dictaminarEvidencia(id, 'Validado')
-            toast.success('Evidencia aprobada.')
-          }}
-          onRechazar={(id) => {
-            dictaminarEvidencia(id, 'Rechazado', 'Requiere corrección según revisión administrativa.')
-            toast.warning('Evidencia devuelta para corrección.')
-          }}
-          enlaceDetalle={(id) => `/revisor/bandeja/${id}`}
+          onAprobar={(id) => setAccionPendiente({ tipo: 'aprobar', id })}
+          onRechazar={(id) => setAccionPendiente({ tipo: 'rechazar', id })}
+          enlaceDetalle={(id) => `/administrador/evidencias/${id}`}
         />
       )}
+
+      <DialogoConfirmacion
+        abierto={accionPendiente?.tipo === 'aprobar'}
+        titulo="¿Aprobar evidencia?"
+        descripcion="La evidencia pasará a estado Validado."
+        etiquetaConfirmar="Sí, aprobar"
+        onConfirmar={ejecutarAccion}
+        onCancelar={() => setAccionPendiente(null)}
+      />
+      <DialogoConfirmacion
+        abierto={accionPendiente?.tipo === 'rechazar'}
+        titulo="¿Rechazar evidencia?"
+        descripcion="La evidencia volverá al cargador con observaciones de corrección."
+        etiquetaConfirmar="Sí, rechazar"
+        variant="destructive"
+        onConfirmar={ejecutarAccion}
+        onCancelar={() => setAccionPendiente(null)}
+      />
     </div>
   )
 }

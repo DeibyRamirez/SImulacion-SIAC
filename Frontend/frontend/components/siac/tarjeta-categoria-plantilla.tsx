@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import Link from 'next/link'
 
 import type { MetaCategoriaPlantilla } from '@/lib/categorias-plantilla'
@@ -13,12 +14,15 @@ interface TarjetaCategoriaPlantillaProps {
 export function TarjetaCategoriaPlantilla({ meta, conteo, href }: TarjetaCategoriaPlantillaProps) {
   return (
     <Link href={href} className="tarjeta-visual group block">
-      <div
-        className="relative aspect-[4/3] w-full"
-        style={{
-          background: `linear-gradient(135deg, ${meta.gradienteDesde} 0%, ${meta.gradienteHasta} 100%)`,
-        }}
-      >
+      <div className="relative aspect-[4/3] w-full overflow-hidden">
+        <Image
+          src={meta.imagenUrl}
+          alt={meta.titulo}
+          fill
+          className="object-cover transition-transform duration-300 group-hover:scale-105"
+          sizes="(max-width: 768px) 100vw, 33vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         <div className="absolute inset-0 flex items-end p-5">
           <span className="rounded-full bg-white/25 px-3 py-1 text-xs font-bold text-white backdrop-blur-sm">
             {conteo} {conteo === 1 ? 'documento' : 'documentos'}

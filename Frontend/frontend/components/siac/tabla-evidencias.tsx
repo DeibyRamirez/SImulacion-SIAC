@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import { FileText, Trash2 } from 'lucide-react'
 
 import { InsigniaEstado } from '@/components/siac/insignia-estado'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Table,
@@ -14,7 +15,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import type { Evidencia } from '@/lib/tipos'
-import { formatearFecha, obtenerNombrePrograma } from '@/lib/utilidades-siac'
+import { esNovedadCargador, formatearFecha, obtenerNombrePrograma } from '@/lib/utilidades-siac'
 import { cn } from '@/lib/utils'
 
 interface TablaEvidenciasProps {
@@ -24,6 +25,7 @@ interface TablaEvidenciasProps {
   mostrarAccionesRapidas?: boolean
   onAprobar?: (id: string) => void
   onRechazar?: (id: string) => void
+  mostrarNovedades?: boolean
 }
 
 export function TablaEvidencias({
@@ -33,6 +35,7 @@ export function TablaEvidencias({
   mostrarAccionesRapidas,
   onAprobar,
   onRechazar,
+  mostrarNovedades,
 }: TablaEvidenciasProps) {
   const router = useRouter()
 
@@ -59,7 +62,11 @@ export function TablaEvidencias({
           {evidencias.map((evidencia) => (
             <TableRow
               key={evidencia.id}
-              className={cn('border-primary/5', enlaceDetalle && 'cursor-pointer')}
+              className={cn(
+                'border-primary/5',
+                enlaceDetalle && 'cursor-pointer',
+                evidencia.estado === 'Rechazado' && 'bg-fucsia/5',
+              )}
               onClick={() => {
                 if (enlaceDetalle) {
                   router.push(enlaceDetalle(evidencia.id))
@@ -73,7 +80,12 @@ export function TablaEvidencias({
                   </div>
                   <div>
                     <p className="font-semibold text-primary">{evidencia.nombre}</p>
-                    <p className="text-xs text-muted-foreground">{evidencia.nombreArchivo}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {evidencia.nombreArchivo}
+                      {evidencia.version && evidencia.version > 1 && (
+                        <span className="ml-1 text-cyan-tecnico">· v{evidencia.version}</span>
+                      )}
+                    </p>
                   </div>
                 </div>
               </TableCell>
@@ -82,7 +94,19 @@ export function TablaEvidencias({
               </TableCell>
               <TableCell className="text-sm">{evidencia.factor}</TableCell>
               <TableCell>
-                <InsigniaEstado estado={evidencia.estado} />
+                <div className="flex flex-wrap items-center gap-2">
+                  <InsigniaEstado estado={evidencia.estado} />
+                  {mostrarNovedades && esNovedadCargador(evidencia) && (
+                    <Badge variant="destructive" className="text-[10px]">
+                      Requiere acción
+                    </Badge>
+                  )}
+                  {evidencia.estado === 'Rechazado' && evidencia.observaciones && (
+                    <Badge variant="destructive" className="text-[10px]">
+                      Con observaciones
+                    </Badge>
+                  )}
+                </div>
               </TableCell>
               <TableCell className="text-sm text-muted-foreground">
                 {formatearFecha(evidencia.fechaCarga)}

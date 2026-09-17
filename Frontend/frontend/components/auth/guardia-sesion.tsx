@@ -2,9 +2,8 @@
 
 import { useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
-import { ShieldCheck } from 'lucide-react'
-
-import { prefijoRol } from '@/lib/auth-mock'
+import { PantallaCargandoSiac } from '@/components/auth/pantalla-cargando-siac'
+import { prefijoRol, rutaPermitidaSuperAdmin } from '@/lib/auth-mock'
 import type { RolUsuario } from '@/lib/tipos'
 import { usarSesion } from '@/components/auth/proveedor-sesion'
 
@@ -29,6 +28,15 @@ export function GuardiaSesion({
       return
     }
 
+    const esSuperAdmin = sesion.rol === 'SuperAdmin'
+
+    if (esSuperAdmin) {
+      if (!rutaPermitidaSuperAdmin(pathname)) {
+        router.replace('/superadmin')
+      }
+      return
+    }
+
     if (sesion.rol !== rolPermitido) {
       router.replace(prefijoRol(sesion.rol))
       return
@@ -40,15 +48,13 @@ export function GuardiaSesion({
     }
   }, [cargando, sesion, router, pathname, rolPermitido])
 
-  if (cargando || !sesion || sesion.rol !== rolPermitido) {
-    return (
-      <div className="fondo-app flex min-h-screen flex-col items-center justify-center gap-4">
-        <div className="flex size-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
-          <ShieldCheck className="size-7 animate-pulse" />
-        </div>
-        <p className="text-sm font-semibold text-primary">Cargando sesión SIAC…</p>
-      </div>
-    )
+  const accesoPermitido =
+    sesion &&
+    (sesion.rol === rolPermitido ||
+      (sesion.rol === 'SuperAdmin' && rutaPermitidaSuperAdmin(pathname)))
+
+  if (cargando || !accesoPermitido) {
+    return <PantallaCargandoSiac />
   }
 
   return <>{children}</>

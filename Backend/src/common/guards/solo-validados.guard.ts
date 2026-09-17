@@ -16,9 +16,10 @@ export class SoloValidadosGuard implements CanActivate {
     if (!evidencia) return true;
 
     const rol = request.user?.rol;
-    if (rol === 'Administrador' && evidencia.estado !== EstadoEvidencia.Validado) {
+    const rolesSoloValidados = ['Administrador', 'ParAcademico'];
+    if (rolesSoloValidados.includes(rol) && evidencia.estado !== EstadoEvidencia.Validado) {
       throw new ForbiddenException(
-        'El par académico solo puede acceder a evidencias validadas.',
+        'No tiene permiso para ver borradores.',
       );
     }
 

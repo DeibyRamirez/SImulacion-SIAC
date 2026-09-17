@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { usarAlmacen } from '@/components/auth/proveedor-almacen'
 import { usarSesion } from '@/components/auth/proveedor-sesion'
@@ -15,6 +15,9 @@ import {
   periodosSemilla,
   programasSemilla,
 } from '@/lib/datos-semilla'
+import { listarProgramasApi } from '@/lib/servicios/programas.servicio'
+import { apiDisponible } from '@/lib/servicios/cliente-api'
+import type { Programa } from '@/lib/tipos'
 
 export default function NuevaEvidenciaPage() {
   return (
@@ -28,6 +31,7 @@ function ContenidoNuevaEvidencia() {
   const router = useRouter()
   const { sesion } = usarSesion()
   const { crearEvidencia } = usarAlmacen()
+  const [programas, setProgramas] = useState<Programa[]>(programasSemilla)
   const [nombre, setNombre] = useState('')
   const [programaId, setProgramaId] = useState(programasSemilla[0]?.id ?? '')
   const [periodo, setPeriodo] = useState(periodosSemilla[3] ?? '2026-1')
@@ -35,8 +39,23 @@ function ContenidoNuevaEvidencia() {
   const [indicador, setIndicador] = useState('')
   const [archivo, setArchivo] = useState<File | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [enviando, setEnviando] = useState(false)
 
-  function manejarEnvio(evento: React.FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    if (!apiDisponible()) return
+    listarProgramasApi()
+      .then((lista) => {
+        if (lista.length > 0) {
+          setProgramas(lista)
+          setProgramaId(lista[0].id)
+        }
+      })
+      .catch(() => {
+        // Mantiene semilla local
+      })
+  }, [])
+
+  async function manejarEnvio(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault()
     setError(null)
 
@@ -56,17 +75,26 @@ function ContenidoNuevaEvidencia() {
       return
     }
 
-    crearEvidencia({
-      nombre: nombre.trim(),
-      programaId,
-      periodo,
-      factor,
-      indicador: indicador.trim(),
-      autorId: sesion?.usuarioId ?? 'usr-cargador',
-      nombreArchivo: archivo.name,
-    })
-
-    router.push('/cargador/evidencias')
+    setEnviando(true)
+    try {
+      await crearEvidencia(
+        {
+          nombre: nombre.trim(),
+          programaId,
+          periodo,
+          factor,
+          indicador: indicador.trim(),
+          autorId: sesion?.usuarioId ?? 'usr-cargador',
+          nombreArchivo: archivo.name,
+        },
+        archivo,
+      )
+      router.push('/cargador/evidencias')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'No se pudo guardar la evidencia.')
+    } finally {
+      setEnviando(false)
+    }
   }
 
   return (
@@ -99,7 +127,7 @@ function ContenidoNuevaEvidencia() {
                   onChange={(evento) => setProgramaId(evento.target.value)}
                   className="w-full rounded-lg border border-input px-3 py-2"
                 >
-                  {programasSemilla.map((programa) => (
+                  {programas.map((programa) => (
                     <option key={programa.id} value={programa.id}>
                       {programa.nombre}
                     </option>
@@ -165,7 +193,9 @@ function ContenidoNuevaEvidencia() {
             )}
 
             <div className="flex gap-3">
-              <Button type="submit">Guardar borrador</Button>
+              <Button type="submit" disabled={enviando}>
+                {enviando ? 'Guardando…' : 'Guardar borrador'}
+              </Button>
               <Link href="/cargador/evidencias">
                 <Button type="button" variant="outline">
                   Cancelar

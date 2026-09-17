@@ -17,9 +17,12 @@ import {
   leerAlmacenLocal,
   type DatosPrototipo,
 } from '@/lib/almacen-prototipo'
+import { CLAVE_SESION } from '@/lib/auth-mock'
 import { apiDisponible } from '@/lib/servicios/cliente-api'
+import type { RolUsuario } from '@/lib/tipos'
 import {
   listarEvidenciasApi,
+  crearEvidenciaApi,
   dictaminarEvidenciaApi,
 } from '@/lib/servicios/evidencias.servicio'
 import { listarPlantillasApi } from '@/lib/servicios/plantillas.servicio'
@@ -36,7 +39,10 @@ import type {
 
 interface ContextoAlmacen {
   datos: DatosPrototipo
-  crearEvidencia: (evidencia: Omit<Evidencia, 'id' | 'fechaCarga' | 'estado'>) => void
+  crearEvidencia: (
+    evidencia: Omit<Evidencia, 'id' | 'fechaCarga' | 'estado'>,
+    archivo?: File,
+  ) => Promise<void>
   actualizarEvidencia: (id: string, cambios: Partial<Evidencia>) => void
   eliminarEvidencia: (id: string) => void
   dictaminarEvidencia: (
@@ -66,6 +72,21 @@ const ContextoAlmacenSiac = createContext<ContextoAlmacen | null>(null)
 
 function generarId(prefijo: string): string {
   return `${prefijo}-${Date.now()}`
+}
+
+function leerRolSesion(): RolUsuario | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const raw = localStorage.getItem(CLAVE_SESION)
+    if (!raw) return null
+    return (JSON.parse(raw) as { rol?: RolUsuario }).rol ?? null
+  } catch {
+    return null
+  }
+}
+
+function debeFusionarSemillaEvidencias(rol: RolUsuario | null): boolean {
+  return rol !== 'Administrador' && rol !== 'SuperAdmin'
 }
 
 export function ProveedorAlmacen({ children }: { children: React.ReactNode }) {
@@ -99,6 +120,7 @@ export function ProveedorAlmacen({ children }: { children: React.ReactNode }) {
               : new Date().toISOString().slice(0, 10),
             observaciones: e.observaciones,
             responsable: e.responsable,
+            version: e.version,
           }))
 
           const anexosMapeados: AnexoVigencia[] = (anexos as AnexoVigencia[]).map((a) => ({
@@ -118,9 +140,12 @@ export function ProveedorAlmacen({ children }: { children: React.ReactNode }) {
           )
 
           const iniciales = crearDatosIniciales()
+          const rol = leerRolSesion()
           setDatos({
             ...local,
-            evidencias: fusionarEvidenciasConSemilla(evidencias, iniciales.evidencias),
+            evidencias: debeFusionarSemillaEvidencias(rol)
+              ? fusionarEvidenciasConSemilla(evidencias, iniciales.evidencias)
+              : evidencias,
             plantillas: fusionarPlantillasConSemilla(plantillas, iniciales.plantillas),
             anexosVigencia: anexosMapeados,
             alertas: alertasMapeadas.length > 0 ? alertasMapeadas : local.alertas,
@@ -146,7 +171,38 @@ export function ProveedorAlmacen({ children }: { children: React.ReactNode }) {
   }, [])
 
   const crearEvidencia = useCallback(
-    (evidencia: Omit<Evidencia, 'id' | 'fechaCarga' | 'estado'>) => {
+    async (evidencia: Omit<Evidencia, 'id' | 'fechaCarga' | 'estado'>, archivo?: File) => {
+      if (apiDisponible() && archivo) {
+        const formData = new FormData()
+        formData.append('nombre', evidencia.nombre)
+        formData.append('programaId', evidencia.programaId)
+        formData.append('periodo', evidencia.periodo)
+        formData.append('factor', evidencia.factor)
+        formData.append('indicador', evidencia.indicador)
+        formData.append('archivo', archivo)
+
+        const creada = await crearEvidenciaApi(formData)
+        const mapeada: Evidencia = {
+          id: creada.id,
+          nombre: creada.nombre,
+          programaId: creada.programaId,
+          periodo: creada.periodo,
+          factor: creada.factor,
+          indicador: creada.indicador,
+          estado: creada.estado,
+          autorId: creada.autorId,
+          nombreArchivo: creada.nombreArchivo,
+          fechaCarga:
+            typeof creada.fechaCarga === 'string'
+              ? creada.fechaCarga.slice(0, 10)
+              : new Date().toISOString().slice(0, 10),
+          observaciones: creada.observaciones,
+          responsable: creada.responsable,
+        }
+        persistir((prev) => ({ ...prev, evidencias: [mapeada, ...prev.evidencias] }))
+        return
+      }
+
       const nueva: Evidencia = {
         ...evidencia,
         id: generarId('ev'),

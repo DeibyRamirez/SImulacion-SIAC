@@ -13,15 +13,30 @@ export const distribucionEstadosSemilla = [
   { estado: 'Borrador', valor: 14, clave: 'borrador' },
 ]
 
-export const categoriasCalidadSemilla = [
-  { nombre: 'Estudiantes', valor: 4.2, detalle: 'Selección y permanencia' },
-  { nombre: 'Profesores', valor: 4.5, detalle: 'Formación y experiencia' },
-  { nombre: 'Investigación', valor: 3.8, detalle: 'Grupos y productos' },
-  { nombre: 'Relaciones entorno', valor: 4.0, detalle: 'Vinculación externa' },
-  { nombre: 'Bienestar', valor: 4.3, detalle: 'Modelo institucional' },
-  { nombre: 'Egresados', valor: 3.9, detalle: 'Seguimiento y empleabilidad' },
-  { nombre: 'Infraestructura', valor: 4.1, detalle: 'Medios educativos' },
-  { nombre: 'Aseguramiento', valor: 4.4, detalle: 'SIAC y autoevaluación' },
+const IMAGEN_RESUMEN = '/imagenes/siac/placeholder-resumen.svg'
+
+export const tarjetasResumenSemilla = [
+  {
+    id: 'vision-institucional',
+    titulo: 'Visión institucional',
+    valor: '81.4%',
+    detalle: 'Cumplimiento global del SIAC',
+    urlImagen: IMAGEN_RESUMEN,
+  },
+  {
+    id: 'condiciones-institucionales',
+    titulo: 'Condiciones institucionales',
+    valor: '88.2%',
+    detalle: '6 condiciones · pre-calificación',
+    urlImagen: IMAGEN_RESUMEN,
+  },
+  {
+    id: 'condiciones-programa',
+    titulo: 'Condiciones de programa',
+    valor: '76.9%',
+    detalle: 'Avance por programas académicos',
+    urlImagen: IMAGEN_RESUMEN,
+  },
 ]
 
 export const resumenInstitucionalSemilla = {

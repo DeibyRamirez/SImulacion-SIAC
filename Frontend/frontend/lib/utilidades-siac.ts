@@ -55,6 +55,29 @@ export function contarEvidenciasPendientes(
   return evidencias.filter((e) => e.estado === 'Borrador' || e.estado === 'EnRevision').length
 }
 
+export function contarNovedadesCargador(
+  evidencias: { estado: EstadoEvidencia; autorId: string; observaciones?: string }[],
+  autorId: string,
+): number {
+  return evidencias.filter(
+    (e) => e.autorId === autorId && esNovedadCargador(e),
+  ).length
+}
+
+export function esNovedadCargador(evidencia: {
+  estado: EstadoEvidencia
+  observaciones?: string
+}): boolean {
+  return evidencia.estado === 'Rechazado'
+}
+
+export function inferirFormatoArchivo(nombreArchivo: string): 'PDF' | 'XLSX' | 'OTRO' {
+  const ext = nombreArchivo.split('.').pop()?.toLowerCase()
+  if (ext === 'pdf') return 'PDF'
+  if (ext === 'xlsx' || ext === 'xls') return 'XLSX'
+  return 'OTRO'
+}
+
 export function manejarCambioSelect(
   actualizar: (valor: string) => void,
 ): (valor: string | null) => void {

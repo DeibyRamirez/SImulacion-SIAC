@@ -12,6 +12,6 @@ export {
 export {
   tendenciaMensualSemilla,
   distribucionEstadosSemilla,
-  categoriasCalidadSemilla,
+  tarjetasResumenSemilla,
   resumenInstitucionalSemilla,
 } from './metricas-dashboard'

@@ -1,4 +1,4 @@
-const URL_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+const URL_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
 
 export class ErrorApi extends Error {
   constructor(
@@ -58,5 +58,5 @@ export async function peticionApi<T>(
 }
 
 export function apiDisponible(): boolean {
-  return Boolean(process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api');
+  return Boolean(process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1');
 }

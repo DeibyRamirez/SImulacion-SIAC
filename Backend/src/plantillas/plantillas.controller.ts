@@ -10,12 +10,9 @@ import {
   Request,
   UploadedFile,
   UseInterceptors,
-  Res,
-  StreamableFile,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '@nestjs/passport';
-import { Response } from 'express';
 import { RolUsuario } from '@prisma/client';
 import { PlantillasService } from './plantillas.service';
 import { CrearPlantillaDto, ActualizarPlantillaDto } from './dto/plantilla.dto';
@@ -52,21 +49,16 @@ export class PlantillasController {
   }
 
   @Delete(':id')
-  @Roles(RolUsuario.Administrador)
-  eliminar(
+  @Roles(RolUsuario.Administrador, RolUsuario.Revisor)
+  deshabilitar(
     @Param('id') id: string,
     @Request() req: { user: { rol: RolUsuario } },
   ) {
-    return this.plantillasService.eliminar(id, req.user.rol);
+    return this.plantillasService.deshabilitar(id, req.user.rol);
   }
 
   @Get(':id/descargar')
-  async descargar(@Param('id') id: string, @Res({ passthrough: true }) res: Response) {
-    const { buffer, nombreArchivo } = await this.plantillasService.descargar(id);
-    res.set({
-      'Content-Type': 'application/octet-stream',
-      'Content-Disposition': `attachment; filename="${nombreArchivo}"`,
-    });
-    return new StreamableFile(buffer);
+  descargar(@Param('id') id: string) {
+    return this.plantillasService.obtenerUrlDescarga(id);
   }
 }

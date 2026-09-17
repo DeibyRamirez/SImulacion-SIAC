@@ -7,8 +7,7 @@ export interface MetaCategoriaPlantilla {
   categoria: CategoriaPlantilla
   titulo: string
   descripcion: string
-  gradienteDesde: string
-  gradienteHasta: string
+  imagenUrl: string
 }
 
 export const categoriasPlantilla: MetaCategoriaPlantilla[] = [
@@ -17,24 +16,21 @@ export const categoriasPlantilla: MetaCategoriaPlantilla[] = [
     categoria: 'Institucional',
     titulo: 'Condiciones institucionales',
     descripcion: 'Selección, estructura, SIAC, egresados y condiciones transversales.',
-    gradienteDesde: '#0A3B74',
-    gradienteHasta: '#1D70B8',
+    imagenUrl: '/Categorias/CI.png',
   },
   {
     slug: 'programa',
     categoria: 'Programa',
     titulo: 'Condiciones de programa',
     descripcion: 'Denominación, currículo, profesores, recursos y resultados.',
-    gradienteDesde: '#1CBCA6',
-    gradienteHasta: '#0A3B74',
+    imagenUrl: '/Categorias/CP.png',
   },
   {
     slug: 'autoevaluacion',
     categoria: 'Autoevaluacion',
     titulo: 'Autoevaluación y renovación',
     descripcion: 'Informes, instrumentos, matrices de evidencias y planes de mejoramiento.',
-    gradienteDesde: '#904179',
-    gradienteHasta: '#D82B5A',
+    imagenUrl: '/Categorias/Auto_Renov.png',
   },
 ]
 

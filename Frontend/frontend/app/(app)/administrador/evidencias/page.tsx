@@ -1,18 +1,20 @@
 'use client'
 
-import { useMemo, useState } from 'react'
-import Link from 'next/link'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Download } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { usarAlmacen } from '@/components/auth/proveedor-almacen'
 import { PlantillaPaginaApp } from '@/components/layout/shell-aplicacion'
 import { BarraHerramientasTabla } from '@/components/siac/barra-herramientas-tabla'
+import { FiltroPrograma } from '@/components/siac/filtro-programa'
 import { FiltrosSegmentados } from '@/components/siac/filtros-segmentados'
 import { TablaEvidencias } from '@/components/siac/tabla-evidencias'
 import { EncabezadoPagina, PanelVacio } from '@/components/siac/tarjeta-acceso'
 import { Button } from '@/components/ui/button'
-import type { EstadoEvidencia } from '@/lib/tipos'
+import { apiDisponible } from '@/lib/servicios/cliente-api'
+import { listarEvidenciasApi } from '@/lib/servicios/evidencias.servicio'
+import type { EstadoEvidencia, Evidencia } from '@/lib/tipos'
 
 const filtrosEstado = [
   { valor: 'todos', etiqueta: 'Todos' },
@@ -31,39 +33,59 @@ export default function EvidenciasAdministradorPage() {
 }
 
 function ContenidoEvidencias() {
-  const { datos, eliminarEvidencia } = usarAlmacen()
+  const searchParams = useSearchParams()
+  const [evidencias, setEvidencias] = useState<Evidencia[]>([])
   const [busqueda, setBusqueda] = useState('')
   const [filtroEstado, setFiltroEstado] = useState('todos')
+  const [programaId, setProgramaId] = useState(searchParams.get('programaId') ?? 'todos')
+  const [cargando, setCargando] = useState(true)
 
-  const evidenciasFiltradas = useMemo(() => {
-    return datos.evidencias.filter((evidencia) => {
-      const texto = `${evidencia.nombre} ${evidencia.factor} ${evidencia.periodo}`.toLowerCase()
-      const coincideTexto = texto.includes(busqueda.toLowerCase())
-      const coincideEstado =
-        filtroEstado === 'todos' || evidencia.estado === (filtroEstado as EstadoEvidencia)
-      return coincideTexto && coincideEstado
-    })
-  }, [datos.evidencias, busqueda, filtroEstado])
+  const cargarEvidencias = useCallback(async () => {
+    setCargando(true)
+    try {
+      if (apiDisponible()) {
+        const resp = await listarEvidenciasApi({
+          limite: 100,
+          programaId: programaId === 'todos' ? undefined : programaId,
+          estado: filtroEstado === 'todos' ? undefined : filtroEstado,
+          busqueda: busqueda || undefined,
+        })
+        setEvidencias(
+          resp.datos.map((e) => ({
+            ...e,
+            fechaCarga:
+              typeof e.fechaCarga === 'string'
+                ? e.fechaCarga.slice(0, 10)
+                : new Date().toISOString().slice(0, 10),
+          })),
+        )
+      }
+    } finally {
+      setCargando(false)
+    }
+  }, [programaId, filtroEstado, busqueda])
+
+  useEffect(() => {
+    const timer = setTimeout(cargarEvidencias, 300)
+    return () => clearTimeout(timer)
+  }, [cargarEvidencias])
+
+  const evidenciasFiltradas = useMemo(() => evidencias, [evidencias])
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <EncabezadoPagina
-          etiqueta="Gestión documental"
-          titulo="Evidencias y documentos"
-          descripcion="Consulta, organiza y valida los soportes del proceso de calidad."
-        />
-        <Link href="/cargador/evidencias/nueva">
-          <Button>+ Cargar evidencia</Button>
-        </Link>
-      </div>
+      <EncabezadoPagina
+        etiqueta="Gestión documental"
+        titulo="Evidencias y documentos"
+        descripcion="Consulta evidencias de acreditación por carrera. La carga corresponde al rol Cargador."
+      />
 
       <BarraHerramientasTabla
         placeholder="Buscar por nombre, programa o factor…"
         valorBusqueda={busqueda}
         onBuscar={setBusqueda}
-        accionSecundaria={{ etiqueta: 'Filtrar', onClick: () => {} }}
       >
+        <FiltroPrograma valor={programaId} onCambiar={setProgramaId} />
         <FiltrosSegmentados
           opciones={filtrosEstado}
           valorActivo={filtroEstado}
@@ -72,22 +94,21 @@ function ContenidoEvidencias() {
       </BarraHerramientasTabla>
 
       <div className="flex items-center justify-between text-sm text-muted-foreground">
-        <span>{evidenciasFiltradas.length} documentos · Actualizado hace 5 minutos</span>
+        <span>{evidenciasFiltradas.length} documentos desde API</span>
         <Button variant="outline" size="sm" onClick={() => toast.info('Exportación disponible en backend')}>
           <Download className="size-4" />
           Exportar
         </Button>
       </div>
 
-      {evidenciasFiltradas.length === 0 ? (
+      {cargando ? (
+        <p className="text-sm text-muted-foreground">Cargando evidencias…</p>
+      ) : evidenciasFiltradas.length === 0 ? (
         <PanelVacio mensaje="No hay evidencias que coincidan con los filtros." />
       ) : (
         <TablaEvidencias
           evidencias={evidenciasFiltradas}
-          onEliminar={(id) => {
-            eliminarEvidencia(id)
-            toast.success('Evidencia eliminada del prototipo.')
-          }}
+          enlaceDetalle={(id) => `/administrador/evidencias/${id}`}
         />
       )}
     </div>

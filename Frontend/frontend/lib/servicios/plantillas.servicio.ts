@@ -27,6 +27,6 @@ export async function eliminarPlantillaApi(id: string): Promise<void> {
 }
 
 export function urlDescargaPlantilla(id: string): string {
-  const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
+  const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api/v1';
   return `${base}/plantillas/${id}/descargar`;
 }

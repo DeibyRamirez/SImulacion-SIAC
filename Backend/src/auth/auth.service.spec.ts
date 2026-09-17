@@ -50,14 +50,20 @@ describe('AuthService', () => {
 
     usuarioRepo.buscarPorCorreo.mockResolvedValue({
       id: 'usr-1',
+      codigoInstitucional: null,
       nombre: 'María Cortés',
       correo: 'maria.cargadora@uniautonoma.edu.co',
       contrasena: 'hash-almacenado',
+      cargo: null,
+      dependencia: null,
       rol: RolUsuario.Cargador,
       activo: true,
+      idExterno: null,
+      origenDato: 'Manual',
+      fechaSincronizacion: null,
       createdAt: new Date(),
       updatedAt: new Date(),
-    });
+    } as never);
 
     (bcrypt.compare as jest.Mock).mockImplementation(
       (plain: string) => Promise.resolve(plain === 'Cargador2026'),
