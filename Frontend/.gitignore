@@ -1,26 +1,18 @@
-# Dependencias y builds
-node_modules/
-.next/
-out/
-dist/
-build/
+# v0 sandbox internal files
+__v0_runtime_loader.js
+__v0_devtools.tsx
+__v0_jsx-dev-runtime.ts
+.snowflake/
+.v0-trash/
+.vercel/
 
-# Entorno local
-.env
+# Environment variables
 .env*.local
 
-# Herramientas / SO
+# Common ignores
+node_modules
+.next/
 .DS_Store
-Thumbs.db
-*.log
-.vercel/
-.v0-trash/
-.snowflake/
 
-# Lockfiles alternativos (el proyecto usa pnpm)
+# Lockfile de npm (proyecto usa pnpm)
 package-lock.json
-yarn.lock
-
-# IDE
-.idea/
-.vscode/
